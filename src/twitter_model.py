@@ -1,7 +1,7 @@
 class TwitterData(dict):
     def __init__(self, parsed, **kwargs):
         super(TwitterData, self).__init__(**kwargs)
-        set_if(self, "id", parsed.id)
+        set_if(self, "_id", parsed.id)
         set_if(self, "created_at", parsed.created_at)
         set_if(self, "text", parsed.text)
         set_if(self, "lang", parsed.lang)
@@ -24,7 +24,7 @@ class TwitterPlace(dict):
 class TwitterUser(dict):
     def __init__(self, parsed, **kwargs):
         super(TwitterUser, self).__init__(**kwargs)
-        set_if(self, "id", parsed.id)
+        set_if(self, "_userid", parsed.id)
         set_if(self, "name", parsed.name)
         set_if(self, "description", parsed.description)
         set_if(self, "screen_name", parsed.screen_name)

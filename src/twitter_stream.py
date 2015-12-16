@@ -1,7 +1,7 @@
 import argparse
-from datetime import datetime
+import re
 
-import crawler
+import stream
 import mongo
 
 
@@ -10,23 +10,28 @@ def main():
     db = mongo.get_mongo_database_with_auth(args.dbhost, args.dbport, args.dbname, args.username, args.password)
 
     year = int(args.phrase_year)
-    query = db[args.phrase_collection].find({'releaseDate': {'$gte': datetime(year, 1, 1), '$lte': datetime(year, 12, 31)}, 'languages': 'English'})
+    query = db[args.phrase_collection].find({'year': year})
     phrases = []
     for cursor in query:
-        phrases.append(''.join(e for e in cursor["title"] if e.isalnum()))
+        current = cursor['title']
+        if current:
+            phrase = prepare_phrase(current[:-7])
+            phrases.append(phrase)
+            if not phrase.isalnum():
+                phrases.append(remove_special_chars(phrase))
 
-    i = 0
-    while i < len(phrases)-1:
-        j = None
-        if i + 400 >= len(phrases):
-            j = len(phrases)-1
-        else:
-            j = i + 400
+    stream.init_crawler(args.consumer_key, args.consumer_secret, args.access_token, args.access_token_secret,
+                        db[args.collection], phrases)
 
-        print "Start Thread from %s to %s" % (i, j)
-        crawler.init_crawler(args.consumer_key, args.consumer_secret, args.access_token, args.access_token_secret,
-                         db[args.collection], phrases[i:j])
-        i = j
+
+def prepare_phrase(string):
+    pattern = re.compile("[^\w' ]")
+    return pattern.sub('', string)
+
+
+def remove_special_chars(string):
+    pattern = re.compile("[^\w]")
+    return pattern.sub('', string)
 
 
 def parse_args():
