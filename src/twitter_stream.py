@@ -1,6 +1,4 @@
 import argparse
-import re
-
 import stream
 import mongo
 
@@ -11,28 +9,11 @@ def main():
 
     year = int(args.phrase_year)
     query = db[args.phrase_collection].find({'year': year})
-    phrases = []
+    titles = []
     for cursor in query:
-        current = cursor['title']
-        if current:
-            phrase = prepare_phrase(current[:-7])
-            phrases.append(phrase)
-            if not phrase.isalnum():
-                phrases.append(remove_special_chars(phrase))
-
+        titles.append(cursor['title'][:-7])
     stream.init_crawler(args.consumer_key, args.consumer_secret, args.access_token, args.access_token_secret,
-                        db[args.collection], phrases)
-
-
-def prepare_phrase(string):
-    pattern = re.compile("[^\w' ]")
-    return pattern.sub('', string)
-
-
-def remove_special_chars(string):
-    pattern = re.compile("[^\w]")
-    return pattern.sub('', string)
-
+                        db[args.collection], titles)
 
 def parse_args():
     parser = argparse.ArgumentParser()

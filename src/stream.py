@@ -1,27 +1,25 @@
+import json
 import re
 import tweepy
-from twitter_model import TwitterData
 
 
 class StreamWatcherListener(tweepy.StreamListener):
-
     db = None
-    track = None
+    regex_list = None
 
-    def __init__(self, db, track):
+    def __init__(self, db, queries):
         super(StreamWatcherListener, self).__init__()
-        self.track = track
+        self.regex_list = [re.compile('(?:^|\s|$)('+q+')(?:^|\s|$)', re.IGNORECASE) for q in queries]
         self.db = db
 
-    def on_status(self, status):
-        if status.text and self.find(status.text):
-            data = TwitterData(status)
-            self.db.insert(data)
+    def on_data(self, data):
+        obj = json.loads(data)
+        if "text" in obj and self.find(obj["text"]):
+            print(obj["text"])
 
     def find(self, content):
-        for obj in self.track:
-            pattern = re.compile("\b#?"+obj+"\b")
-            if pattern.match(content):
+        for regex in self.regex_list:
+            if regex.search(content):
                 return True
         return False
 
@@ -33,9 +31,23 @@ class StreamWatcherListener(tweepy.StreamListener):
         print 'Timeout...'
 
 
-def init_crawler(consumer_key, consumer_secret, access_token, access_token_secret, db, phrases):
+def init_crawler(consumer_key, consumer_secret, access_token, access_token_secret, db, titles):
     auth = tweepy.auth.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
 
-    stream = tweepy.Stream(auth, StreamWatcherListener(db, phrases), timeout=None)
-    stream.filter(track=phrases, languages=['en'], async=True)
+    track = [prepare_phrase(t) for t in titles] + ['#'+remove_special_chars(t) for t in titles]
+    print(track)
+
+    stream = tweepy.Stream(auth, StreamWatcherListener(db, track))
+    stream.filter(track=track, languages=['en'])
+
+
+def prepare_phrase(string):
+    pattern = re.compile("[^\w'\- ]")
+    return pattern.sub('', string)
+
+
+def remove_special_chars(string):
+    pattern = re.compile("[^\w]")
+    return pattern.sub('', string)
+
