@@ -4,12 +4,10 @@ class TwitterData(dict):
         set_if(self, "_id", parsed["id"])
         set_if(self, "created_at", parsed["created_at"])
         set_if(self, "text", parsed["text"])
-        set_if(self, "lang", parsed["lang"])
         set_if(self, "retweet_count", parsed["retweet_count"])
-        set_if(self, "favorite_count", parsed["favorite_count"])
-        if parsed.place:
+        if "place" in parsed and parsed["place"]:
             set_if(self, "place", TwitterPlace(parsed["place"]))
-        if parsed.user:
+        if "user" in parsed and parsed["user"]:
             set_if(self, "user", TwitterUser(parsed["user"]))
 
 
@@ -26,7 +24,6 @@ class TwitterUser(dict):
         super(TwitterUser, self).__init__(**kwargs)
         set_if(self, "_userid", parsed["id"])
         set_if(self, "name", parsed["name"])
-        set_if(self, "screen_name", parsed["screen_name"])
         set_if(self, "location", parsed["location"])
 
 

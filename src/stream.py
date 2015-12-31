@@ -2,10 +2,13 @@ import json
 import re
 import tweepy
 
+from twitter_model import TwitterData
+
 
 class StreamWatcherListener(tweepy.StreamListener):
     db = None
     regex_list = None
+    db_name = "twitter_stream"
 
     def __init__(self, db, queries):
         super(StreamWatcherListener, self).__init__()
@@ -15,7 +18,7 @@ class StreamWatcherListener(tweepy.StreamListener):
     def on_data(self, data):
         obj = json.loads(data)
         if "text" in obj and self.find(obj["text"]):
-            print(obj["text"])
+            self.db.insert(TwitterData(obj))
 
     def find(self, content):
         for regex in self.regex_list:
