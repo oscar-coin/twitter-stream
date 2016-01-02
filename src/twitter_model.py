@@ -1,7 +1,7 @@
 class TwitterData(dict):
     def __init__(self, parsed, **kwargs):
         super(TwitterData, self).__init__(**kwargs)
-        set_if(self, "_id", parsed["id"])
+        set_if(self, "twitter_id", parsed["id"])
         set_if(self, "created_at", parsed["created_at"])
         set_if(self, "text", parsed["text"])
         set_if(self, "retweet_count", parsed["retweet_count"])
